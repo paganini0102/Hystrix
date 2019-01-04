@@ -414,10 +414,10 @@ import java.util.concurrent.atomic.AtomicReference;
         final Func0<Observable<R>> applyHystrixSemantics = new Func0<Observable<R>>() {
             @Override
             public Observable<R> call() {
-                if (commandState.get().equals(CommandState.UNSUBSCRIBED)) {
+                if (commandState.get().equals(CommandState.UNSUBSCRIBED)) { // commandState处于UNSUBSCRIBED时，不执行命令
                     return Observable.never();
                 }
-                return applyHystrixSemantics(_cmd);
+                return applyHystrixSemantics(_cmd); // 获得执行Observable
             }
         };
 
@@ -522,8 +522,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
         /* determine if we're allowed to execute */
         if (circuitBreaker.attemptExecution()) {
-            final TryableSemaphore executionSemaphore = getExecutionSemaphore();
-            final AtomicBoolean semaphoreHasBeenReleased = new AtomicBoolean(false);
+            final TryableSemaphore executionSemaphore = getExecutionSemaphore(); // 获得信号量
+            final AtomicBoolean semaphoreHasBeenReleased = new AtomicBoolean(false); // 信号量释放Action
             final Action0 singleSemaphoreRelease = new Action0() {
                 @Override
                 public void call() {
@@ -533,21 +533,21 @@ import java.util.concurrent.atomic.AtomicReference;
                 }
             };
 
-            final Action1<Throwable> markExceptionThrown = new Action1<Throwable>() {
+            final Action1<Throwable> markExceptionThrown = new Action1<Throwable>() { // 事件机制
                 @Override
                 public void call(Throwable t) {
                     eventNotifier.markEvent(HystrixEventType.EXCEPTION_THROWN, commandKey);
                 }
             };
 
-            if (executionSemaphore.tryAcquire()) {
+            if (executionSemaphore.tryAcquire()) { // 尝试获得信号量
                 try {
                     /* used to track userThreadExecutionTime */
-                    executionResult = executionResult.setInvocationStartTime(System.currentTimeMillis());
+                    executionResult = executionResult.setInvocationStartTime(System.currentTimeMillis()); // 标记executionResult调用开始时间
                     return executeCommandAndObserve(_cmd)
                             .doOnError(markExceptionThrown)
                             .doOnTerminate(singleSemaphoreRelease)
-                            .doOnUnsubscribe(singleSemaphoreRelease);
+                            .doOnUnsubscribe(singleSemaphoreRelease); // 获得执行Observable
                 } catch (RuntimeException e) {
                     return Observable.error(e);
                 }

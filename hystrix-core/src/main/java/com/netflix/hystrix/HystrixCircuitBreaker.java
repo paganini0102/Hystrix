@@ -32,6 +32,7 @@ import rx.Subscription;
 public interface HystrixCircuitBreaker {
 
     /**
+     * 每个Hystrix命令的请求都通过它判断是否被执行
      * Every {@link HystrixCommand} requests asks this if it is allowed to proceed or not.  It is idempotent and does
      * not modify any internal state, and takes into account the half-open logic which allows some requests through
      * after the circuit has been opened
@@ -41,6 +42,7 @@ public interface HystrixCircuitBreaker {
     boolean allowRequest();
 
     /**
+     * 返回当前断路器是否打开
      * Whether the circuit is currently open (tripped).
      * 
      * @return boolean state of circuit breaker
@@ -48,6 +50,7 @@ public interface HystrixCircuitBreaker {
     boolean isOpen();
 
     /**
+     * 用来闭合断路器
      * Invoked on successful executions from {@link HystrixCommand} as part of feedback mechanism when in a half-open state.
      */
     void markSuccess();
@@ -136,7 +139,9 @@ public interface HystrixCircuitBreaker {
      * @ThreadSafe
      */
     /* package */class HystrixCircuitBreakerImpl implements HystrixCircuitBreaker {
+        /** 断路器对应HystrixCommand实例的属性对象 */
         private final HystrixCommandProperties properties;
+        /** 让HystixCommand记录各类度量指标的对象 */
         private final HystrixCommandMetrics metrics;
 
         enum Status {
@@ -144,6 +149,7 @@ public interface HystrixCircuitBreaker {
         }
 
         private final AtomicReference<Status> status = new AtomicReference<Status>(Status.CLOSED);
+        /** 断路器是否打开的标识，默认为false */
         private final AtomicLong circuitOpened = new AtomicLong(-1);
         private final AtomicReference<Subscription> activeSubscription = new AtomicReference<Subscription>(null);
 
@@ -289,6 +295,7 @@ public interface HystrixCircuitBreaker {
     }
 
     /**
+     * 一个什么都不做的断路器实现，它允许所有请求，并且断路器状态始终闭合
      * An implementation of the circuit breaker that does nothing.
      * 
      * @ExcludeFromJavadoc
