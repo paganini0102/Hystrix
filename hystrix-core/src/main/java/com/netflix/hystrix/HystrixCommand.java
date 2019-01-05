@@ -307,6 +307,7 @@ public abstract class HystrixCommand<R> extends AbstractCommand<R> implements Hy
         }).doOnSubscribe(new Action0() {
             @Override
             public void call() {
+                // 记录执行线程
                 // Save thread on which we get subscribed so that we can interrupt it later if needed
                 executionThread.set(Thread.currentThread());
             }

@@ -471,7 +471,7 @@ import java.util.concurrent.atomic.AtomicReference;
                     }
                 }
 
-                final boolean requestCacheEnabled = isRequestCachingEnabled();
+                final boolean requestCacheEnabled = isRequestCachingEnabled(); // 尝试从缓存中获取结果
                 final String cacheKey = getCacheKey();
 
                 /* try from cache first */
@@ -652,25 +652,25 @@ import java.util.concurrent.atomic.AtomicReference;
             return Observable.defer(new Func0<Observable<R>>() {
                 @Override
                 public Observable<R> call() {
-                    executionResult = executionResult.setExecutionOccurred();
-                    if (!commandState.compareAndSet(CommandState.OBSERVABLE_CHAIN_CREATED, CommandState.USER_CODE_EXECUTED)) {
+                    executionResult = executionResult.setExecutionOccurred(); // 标记executionResult执行已发生
+                    if (!commandState.compareAndSet(CommandState.OBSERVABLE_CHAIN_CREATED, CommandState.USER_CODE_EXECUTED)) { // 设置commandState为USER_CODE_EXECUTED
                         return Observable.error(new IllegalStateException("execution attempted while in state : " + commandState.get().name()));
                     }
 
                     metrics.markCommandStart(commandKey, threadPoolKey, ExecutionIsolationStrategy.THREAD);
 
-                    if (isCommandTimedOut.get() == TimedOutStatus.TIMED_OUT) {
+                    if (isCommandTimedOut.get() == TimedOutStatus.TIMED_OUT) { // 执行超时
                         // the command timed out in the wrapping thread so we will return immediately
                         // and not increment any of the counters below or other such logic
                         return Observable.error(new RuntimeException("timed out before executing run()"));
                     }
-                    if (threadState.compareAndSet(ThreadState.NOT_USING_THREAD, ThreadState.STARTED)) {
+                    if (threadState.compareAndSet(ThreadState.NOT_USING_THREAD, ThreadState.STARTED)) { // 设置线程状态为ThreadState.STARTED
                         //we have not been unsubscribed, so should proceed
                         HystrixCounters.incrementGlobalConcurrentThreads();
                         threadPool.markThreadExecution();
                         // store the command that is being run
                         endCurrentThreadExecutingCommand = Hystrix.startCurrentThreadExecutingCommand(getCommandKey());
-                        executionResult = executionResult.setExecutedInThread();
+                        executionResult = executionResult.setExecutedInThread(); // 标记executionResult使用线程执行
                         /**
                          * If any of these hooks throw an exception, then it appears as if the actual execution threw an error
                          */
@@ -678,7 +678,7 @@ import java.util.concurrent.atomic.AtomicReference;
                             executionHook.onThreadStart(_cmd);
                             executionHook.onRunStart(_cmd);
                             executionHook.onExecutionStart(_cmd);
-                            return getUserExecutionObservable(_cmd);
+                            return getUserExecutionObservable(_cmd); // 执行Observable
                         } catch (Throwable ex) {
                             return Observable.error(ex);
                         }
@@ -1257,7 +1257,7 @@ import java.util.concurrent.atomic.AtomicReference;
         if (properties.executionIsolationStrategy().get() == ExecutionIsolationStrategy.SEMAPHORE) {
             if (executionSemaphoreOverride == null) {
                 TryableSemaphore _s = executionSemaphorePerCircuit.get(commandKey.name());
-                if (_s == null) {
+                if (_s == null) { // 不存在时，创建TryableSemaphoreActual
                     // we didn't find one cache so setup
                     executionSemaphorePerCircuit.putIfAbsent(commandKey.name(), new TryableSemaphoreActual(properties.executionIsolationSemaphoreMaxConcurrentRequests()));
                     // assign whatever got set (this or another thread)
