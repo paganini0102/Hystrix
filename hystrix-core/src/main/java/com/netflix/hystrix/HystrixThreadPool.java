@@ -73,6 +73,7 @@ public interface HystrixThreadPool {
     public void markThreadRejection();
 
     /**
+     * 判断线程池队列是否有空余
      * Whether the queue will allow adding an item to it.
      * <p>
      * This allows dynamic control of the max queueSize versus whatever the actual max queueSize is so that dynamic changes can be done via property changes rather than needing an app

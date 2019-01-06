@@ -157,7 +157,7 @@ public class HystrixContextScheduler extends Scheduler {
 
         @Override
         public Subscription schedule(final Action0 action) {
-            if (subscription.isUnsubscribed()) {
+            if (subscription.isUnsubscribed()) { // 未订阅，返回
                 // don't schedule, we are unsubscribed
                 return Subscriptions.unsubscribed();
             }
@@ -165,10 +165,10 @@ public class HystrixContextScheduler extends Scheduler {
             // This is internal RxJava API but it is too useful.
             ScheduledAction sa = new ScheduledAction(action);
 
-            subscription.add(sa);
+            subscription.add(sa); // 添加到订阅
             sa.addParent(subscription);
 
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) threadPool.getExecutor();
+            ThreadPoolExecutor executor = (ThreadPoolExecutor) threadPool.getExecutor(); // 提交任务
             FutureTask<?> f = (FutureTask<?>) executor.submit(sa);
             sa.add(new FutureCompleterWithConfigurableInterrupt(f, shouldInterruptThread, executor));
 
