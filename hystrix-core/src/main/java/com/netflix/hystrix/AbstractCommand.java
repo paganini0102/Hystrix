@@ -552,10 +552,10 @@ import java.util.concurrent.atomic.AtomicReference;
                     return Observable.error(e);
                 }
             } else {
-                return handleSemaphoreRejectionViaFallback();
+                return handleSemaphoreRejectionViaFallback(); // 拒绝逻辑
             }
         } else {
-            return handleShortCircuitViaFallback();
+            return handleShortCircuitViaFallback(); // 直接走失败的逻辑
         }
     }
 
@@ -598,7 +598,7 @@ import java.util.concurrent.atomic.AtomicReference;
                 }
             }
         };
-
+        // 失败处理逻辑
         final Func1<Throwable, Observable<R>> handleFallback = new Func1<Throwable, Observable<R>>() {
             @Override
             public Observable<R> call(Throwable t) {
@@ -633,7 +633,7 @@ import java.util.concurrent.atomic.AtomicReference;
         };
 
         Observable<R> execution;
-        if (properties.executionTimeoutEnabled().get()) {
+        if (properties.executionTimeoutEnabled().get()) {  // 判断是否开启超时设置
             execution = executeCommandWithSpecifiedIsolation(_cmd)
                     .lift(new HystrixObservableTimeoutOperator<R>(_cmd));
         } else {
