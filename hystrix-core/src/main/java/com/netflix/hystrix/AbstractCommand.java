@@ -475,7 +475,7 @@ import java.util.concurrent.atomic.AtomicReference;
                 final String cacheKey = getCacheKey();
 
                 /* try from cache first */
-                if (requestCacheEnabled) {
+                if (requestCacheEnabled) { // 先从缓存中获取如果有的话直接返回
                     HystrixCommandResponseFromCache<R> fromCache = (HystrixCommandResponseFromCache<R>) requestCache.get(cacheKey);
                     if (fromCache != null) {
                         isResponseFromCache = true;
@@ -647,7 +647,7 @@ import java.util.concurrent.atomic.AtomicReference;
     }
 
     private Observable<R> executeCommandWithSpecifiedIsolation(final AbstractCommand<R> _cmd) {
-        if (properties.executionIsolationStrategy().get() == ExecutionIsolationStrategy.THREAD) {
+        if (properties.executionIsolationStrategy().get() == ExecutionIsolationStrategy.THREAD) { // 线程隔离
             // mark that we are executing in a thread (even if we end up being rejected we still were a THREAD execution and not SEMAPHORE)
             return Observable.defer(new Func0<Observable<R>>() {
                 @Override
